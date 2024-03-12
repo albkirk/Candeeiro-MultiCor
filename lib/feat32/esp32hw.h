@@ -13,8 +13,9 @@
 #ifdef IP5306
     #include <ip5306.h>
 #endif
-#include <myulp.h>
-
+#ifndef ESP32C3
+   #include <myulp.h>
+#endif
 
 uint32_t getChipId();
 String HEXtoUpperString(uint32_t hexval, uint hexlen);
@@ -251,7 +252,9 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
     if ( Ext1WakeUP>=0 && (Time_minutes == 0 || Time_minutes > 5) ) {
         const uint64_t ext1_wakeup_pin_1_mask = 1ULL << Ext1WakeUP;      // -1 Warning during compilling
         //const uint64_t ext1_wakeup_pin_1_mask = Ext1WakeUP;
+#ifndef ESP32C3
         esp_sleep_enable_ext1_wakeup(ext1_wakeup_pin_1_mask, ESP_EXT1_WAKEUP_ALL_LOW);
+#endif
 //  Example using two PINs for external Wake UP 
 //      const int ext_wakeup_pin_1 = 2;
 //      const uint64_t ext_wakeup_pin_1_mask = 1ULL << ext_wakeup_pin_1;
@@ -261,12 +264,12 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 //      esp_sleep_enable_ext1_wakeup(ext_wakeup_pin_1_mask | ext_wakeup_pin_2_mask, ESP_EXT1_WAKEUP_ANY_HIGH);
 
     }
-
+#ifndef ESP32C3
     if (config.HW_Module) {
         if(config.DEBUG) Serial.println("Enabling ULP during deepsleep");
         ulp_action(1000000);                                       // 10 second loop
     }
-    
+#endif
     if (Time_minutes > 0) {
         calculate_sleeptime = uint64_t( ((Time_minutes * 60000UL) - millis()%(Time_minutes * 60000UL)) ) * 1000ULL;
         //Serial.printf("calculate_sleeptime :%llu\n", calculate_sleeptime);

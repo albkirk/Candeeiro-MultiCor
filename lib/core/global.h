@@ -1,3 +1,18 @@
+// Standard Actuators STATUS
+float CALIBRATE = 0;                        // float
+float CALIBRATE_Last = 0;                   // float
+unsigned int LEVEL = 0;                     // [0-100]
+unsigned int LEVEL_Last = 0;                // [0-100]
+int POSITION = 0;                           // [-100,+100]
+int POSITION_Last = 0;                      // [-100,+100]
+bool SWITCH = false;                        // [OFF / ON]
+bool SWITCH_Last = false;                   // [OFF / ON]
+unsigned long TIMER = 0;                    // [0-7200]  Minutes                 
+unsigned long TIMER_Last = 0;               // [0-7200]  Minutes                 
+static long TIMER_Current = 0;
+unsigned long COUNTER = 0;
+
+
 void deepsleep_loop() {
     if (config.DEEPSLEEP && millis() > ONTime_Offset + (ulong(config.ONTime) + Extend_time)*1000) {
         mqtt_publish(mqtt_pathtele, "Status", "DeepSleep");

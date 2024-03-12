@@ -10,10 +10,10 @@
 
 //System Parameters
 #define ChipID HEXtoUpperString(ESP.getChipId(), 6)
-#define ESP_SSID String("ESP-" + ChipID)               // SSID used as Acces Point
-#define Number_of_measures 5                           // Number of value samples (measurements) to calculate average
-byte SLEEPTime = config.SLEEPTime;          // Variable to allow temporary change the sleeptime (ex.: = 0)
-bool Celular_Connected = false;                          // Modem Connection state
+#define ESP_SSID String("ESP-" + ChipID)                // SSID used as Acces Point
+#define Number_of_measures 5                            // Number of value samples (measurements) to calculate average
+byte SLEEPTime = config.SLEEPTime;                      // Variable to allow temporary change the sleeptime (ex.: = 0)
+bool Celular_Connected = false;                         // Modem Connection state
 
 
 // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
@@ -21,7 +21,7 @@ bool Celular_Connected = false;                          // Modem Connection sta
 struct __attribute__((__packed__, aligned(4))) struct_RTC {
   uint32_t crc32 = 0U;                      // 4 bytes   
   unsigned long lastUTCTime = 0UL;          // 4 bytes
-  uint8_t bssid[6];                        // 32 bytes
+  uint8_t bssid[6];                         // 32 bytes
   uint8_t LastWiFiChannel = 0;              // 1 byte,   1 in total
   //uint8_t padding[3];                       // 2 bytes,  4 in total
   uint8_t ByteValue = 0;                    // 1 byte,   2 in total
@@ -30,17 +30,17 @@ struct __attribute__((__packed__, aligned(4))) struct_RTC {
 } rtcData;
 
 static const String flash_size_map_Name[] = {
-    "512KB (MAP: 256/256)",                    /**<  Flash size : 4Mbits. Map : 256KBytes + 256KBytes */
-    "256KB (MAP: 256/ - )",                    /**<  Flash size : 2Mbits. Map : 256KBytes */
-    "1MB (MAP: 512/512)",                    /**<  Flash size : 8Mbits. Map : 512KBytes + 512KBytes */
-    "2MB (MAP: 512/512)",                   /**<  Flash size : 16Mbits. Map : 512KBytes + 512KBytes */
-    "4MB (MAP: 512/512)",                   /**<  Flash size : 32Mbits. Map : 512KBytes + 512KBytes */
-    "2MB (MAP: 1024/1024)",                 /**<  Flash size : 16Mbits. Map : 1024KBytes + 1024KBytes */
-    "4MB (MAP: 1024/1024)",                 /**<  Flash size : 32Mbits. Map : 1024KBytes + 1024KBytes */
-    "4MB (MAP: 2048/2048)",                 /**<  attention: don't support now ,just compatible for nodemcu;
-                                                  Flash size : 32Mbits. Map : 2048KBytes + 2048KBytes */
-    "8MB (MAP: 1024/1024)",                 /**<  Flash size : 64Mbits. Map : 1024KBytes + 1024KBytes */
-    "16MB (MAP: 1024/1024)"                 /**<  Flash size : 128Mbits. Map : 1024KBytes + 1024KBytes */
+    "512KB (MAP: 256/256)",                 /*  Flash size : 4Mbits. Map : 256KBytes + 256KBytes */
+    "256KB (MAP: 256/ - )",                 /*  Flash size : 2Mbits. Map : 256KBytes */
+    "1MB (MAP: 512/512)",                   /*  Flash size : 8Mbits. Map : 512KBytes + 512KBytes */
+    "2MB (MAP: 512/512)",                   /*  Flash size : 16Mbits. Map : 512KBytes + 512KBytes */
+    "4MB (MAP: 512/512)",                   /*  Flash size : 32Mbits. Map : 512KBytes + 512KBytes */
+    "2MB (MAP: 1024/1024)",                 /*  Flash size : 16Mbits. Map : 1024KBytes + 1024KBytes */
+    "4MB (MAP: 1024/1024)",                 /*  Flash size : 32Mbits. Map : 1024KBytes + 1024KBytes */
+    "4MB (MAP: 2048/2048)",                 /*   NOTE!: NOT supported, just to make compatible for nodemcu;
+                                                 Flash size : 32Mbits. Map : 2048KBytes + 2048KBytes */
+    "8MB (MAP: 1024/1024)",                 /*  Flash size : 64Mbits. Map : 1024KBytes + 1024KBytes */
+    "16MB (MAP: 1024/1024)"                 /*  Flash size : 128Mbits. Map : 1024KBytes + 1024KBytes */
 };
 
 
@@ -76,21 +76,6 @@ unsigned long now_millis=0;
 unsigned long Pace_millis=3000;
 unsigned long LED_millis=300;               // 10 slots available (3000 / 300)
 unsigned long BUZZER_millis=100;            // Buzz time (120ms Sound + 120ms  Silent)
-
-
-// Standard Actuators STATUS
-float CALIBRATE = 0;                        // float
-float CALIBRATE_Last = 0;                   // float
-unsigned int LEVEL = 0;                     // [0-100]
-unsigned int LEVEL_Last = 0;                // [0-100]
-int POSITION = 0;                           // [-100,+100]
-int POSITION_Last = 0;                      // [-100,+100]
-bool SWITCH = false;                        // [OFF / ON]
-bool SWITCH_Last = false;                   // [OFF / ON]
-unsigned long TIMER = 0;                    // [0-7200]  Minutes                 
-unsigned long TIMER_Last = 0;               // [0-7200]  Minutes                 
-static long TIMER_Current = 0;
-unsigned long COUNTER = 0;
 
 
 // Functions //
