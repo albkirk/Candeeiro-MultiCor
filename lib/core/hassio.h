@@ -3,10 +3,10 @@
 //JSON Variables
 DynamicJsonDocument device_doc(128);
 DynamicJsonDocument attributes_doc(384);
-StaticJsonDocument<512> discovery_doc;
+StaticJsonDocument<768> discovery_doc;
 char device_jsonString[128];
 char attributes_jsonString[384];
-char discovery_jsonString[512];
+char discovery_jsonString[640];
 int HASSIO_Fail = 0;                        // To count the MQTT messages that weren't sent. 
                                 
 
@@ -40,8 +40,9 @@ void send_attributes(String param) {
 
 void send_status_attributes(String param) {
     attributes_doc.clear();
-    //attributes_doc["SWVer"]             = SWVer;                                // Software Version
-    attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
+    attributes_doc["SWVer"]             = SWVer;                                // Software Version
+    //attributes_doc["ChipID"]            = ChipID;                               // Chip ID
+    //attributes_doc["CPUClock"]          = CPU_Clock();                          // CPU Clock
     attributes_doc["Boot"]              = ESPWakeUpReason();                    // Boot Reason
     if (WIFI_state == WL_CONNECTED) attributes_doc["IP"] = WiFi.localIP().toString(); // WiFi IP address
     #ifdef Modem_WEB_TELNET
@@ -168,7 +169,7 @@ void config_entity(String entity, String device_class, String param = "", String
             discovery_doc["icon"]         = "hass:speedometer";
         }
 
-        if(device_class == "battery" || device_class == "humidity" || device_class == "illuminance") {
+        if(device_class == "battery") {
             discovery_doc["unit_of_meas"] = "%";
             discovery_doc["val_tpl"]      = "{{ value | float }}";
         }
@@ -182,7 +183,21 @@ void config_entity(String entity, String device_class, String param = "", String
 
         if(device_class == "temperature") {
             discovery_doc["unit_of_meas"] = "°C";   // note the usage of char "°" and not "º" 
-            discovery_doc["val_tpl"]      = "{{value | float }}";
+            discovery_doc["val_tpl"]      = "{{value_json.Temperature | float }}";
+        }
+
+        if(device_class == "humidity") {
+            discovery_doc["unit_of_meas"] = "%";
+            discovery_doc["val_tpl"]      = "{{ value_json.Humidity | float }}";
+        }
+
+        if(param == "HumVelocity") {
+            discovery_doc["val_tpl"]      = "{{ value_json.HumVelocity | float }}";
+        }
+
+        if(device_class == "illuminance") {
+            discovery_doc["unit_of_meas"] = "%";
+            discovery_doc["val_tpl"]      = "{{ value_json.Illuminance | float }}";
         }
 
         if(device_class == "power") {
@@ -219,8 +234,20 @@ void config_entity(String entity, String device_class, String param = "", String
         discovery_doc["rgb_stat_t"]     = "~/inform/Color";                         // rgb_state_topic
         discovery_doc["rgb_cmd_t"]      = "~/command/Color";                        // rgb_command_topic
         discovery_doc["rgb_val_tpl"]    = "{{(int(value[1:3], base=16), int(value[3:5],base=16), int(value[5:7],base=16)) | join(',')}}";   // rgb_value_template
-        discovery_doc["bri_stat_t"]     = "~/inform/Gain";                        // brightness_state_topic
-        discovery_doc["bri_cmd_t"]      = "~/command/Gain";                       // brightness_command_topic
+        discovery_doc["bri_stat_t"]     = "~/inform/Gain";                          // brightness_state_topic
+        discovery_doc["bri_cmd_t"]      = "~/command/Gain";                         // brightness_command_topic
+        discovery_doc["fx_stat_t"]      = "~/inform/EFX";                           // effect_state_topic
+        discovery_doc["fx_cmd_t"]       = "~/command/EFX";                          // effect_command_topic
+        JsonArray effects = discovery_doc.createNestedArray("fx_list");
+            effects.add("NoEFX");
+            effects.add("Auto");
+            effects.add("Flash");
+            effects.add("Fade3");
+            effects.add("Fade7");
+            effects.add("scan");
+            effects.add("Rainbow");
+        //discovery_doc["fx_list"]        = "['NoEFX','Auto','Flash','Fade3','Fade7','scan','Raibow']"; // effect_list
+        //discovery_doc["fx_list_tpl"]    = "{{ value | list }}";                     //effect_value_template
         //effect_command_topic
         // state_topic: "office/rgb1/light/status"
         // command_topic: "office/rgb1/light/switch"

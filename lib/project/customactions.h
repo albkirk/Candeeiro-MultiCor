@@ -8,34 +8,39 @@ void custom_mqtt(String command, String cmd_value) {
             else {
                 strcpy(config.DeviceName, config_doc["DeviceName"]);
                 strcpy(config.Location, config_doc["Location"]);
-
+/*
+                config.LOWER_LEVEL =    config_doc["LOWER_Pos"];
+                config.UPPER_LEVEL =    config_doc["UPPER_Pos"];
+*/
                 storage_write();
                 bckp_rstr_flag = true;
                 telnet_println("BckpRstr with success");
             }
         }
     }
-    if ( command == "EFX") EFX = (byte)(cmd_value.toInt());
+    if ( command == "EFX") EFX = EFX_index(cmd_value);
     if ( command == "Gain") { GAIN = (byte)(cmd_value.toInt()); telnet_println("New GAIN: " + String(GAIN));}
     if ( command == "Color")  HARGB_to_color(cmd_value);
     if ( command == "Light") {
-        if ( SWITCH_Last == bool(cmd_value.toInt()) ) mqtt_publish(mqtt_pathtele, "Light", String(SWITCH));
-        else SWITCH = bool(cmd_value.toInt());
+        if ( Light_Last == bool(cmd_value.toInt()) ) mqtt_publish(mqtt_pathtele, "Light", String(Light));
+        else Light = bool(cmd_value.toInt());
     }
 
-
-}
 //  if ( command == "send_Telemetry" && bool(cmd_value.toInt())) { gps_update(); print_gps_data(); send_Telemetry(); }
 
-
+}
 
 void custom_update(){
     yield();
     //ambient_data();
     //mqtt_dump_data(mqtt_pathtele, "Telemetry");
     telnet_println("Color: " + String(Color) + " : GAIN: " + String(GAIN) + " : EFX: " + String(EFX));
-    mqtt_publish(mqtt_pathtele, "Light", String(SWITCH));
+    mqtt_publish(mqtt_pathtele, "Light", String(Light));
     mqtt_publish(mqtt_pathtele, "Color", String(Color));
     mqtt_publish(mqtt_pathtele, "GAIN", String(GAIN));
+    mqtt_publish(mqtt_pathtele, "EFX", EFXName[EFX]);
+
+
+    
 
 }

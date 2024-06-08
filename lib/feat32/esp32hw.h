@@ -30,12 +30,15 @@ bool Celular_Connected = false;             // Modem Connection state
 
 // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
 // so the RTC data structure should be padded to a 4-byte multiple.
-struct __attribute__((__packed__)) struct_RTC {
-  uint32_t crc32 = 0U;                      // 4 bytes   4 in total
-  uint8_t bssid[6];                         // 6 bytes, 10 in total
-  uint8_t LastWiFiChannel = 0;              // 1 byte,  11 in total
-  uint8_t padding = 0;                      // 1 byte,  12 in total
-  unsigned long lastUTCTime = 0UL;          // 4 bytes? 16 in total
+struct __attribute__((__packed__, aligned(4))) struct_RTC {
+  uint32_t crc32 = 0U;                      // 4 bytes   
+  unsigned long lastUTCTime = 0UL;          // 4 bytes
+  uint8_t bssid[6];                         // 32 bytes
+  uint8_t LastWiFiChannel = 0;              // 1 byte,   1 in total
+  //uint8_t padding[3];                       // 2 bytes,  4 in total
+  uint8_t ByteValue = 0;                    // 1 byte,   2 in total
+  //uint8_t padding1[3];                      // 2 bytes,  4 in total
+  float FloatValue = 0.0f;                  // 4 bytes
 } rtcData;
 
 Preferences preferences;                    // Preferences library is wrapper around Non-volatile storage on ESP32 processor.
@@ -46,9 +49,6 @@ Preferences preferences;                    // Preferences library is wrapper ar
     ADC_MODE(ADC_VCC)                       // Get voltage from Internal ADC
 #endif
 */
-#ifndef Default_ADC_PIN
-    #define Default_ADC_PIN 36
-#endif
 
 // Initialize the Webserver
 WebServer MyWebServer(80);
@@ -64,29 +64,6 @@ WiFiClient unsecuclient;                    // Use this for unsecure connection
 #define Batt_Min float(2.8)                 // Battery lowest voltage.   [v]
 #define Vcc float(3.3)                      // Theoretical/Typical ESP voltage. [v]
 #define VADC_MAX float(3.3)                 // Maximum ADC Voltage input
-
-// Timers for millis used on Sleeping and LED flash
-unsigned long ONTime_Offset=0;              // [msec]
-unsigned long Extend_time=0;                // [sec]
-unsigned long now_millis=0;
-unsigned long Pace_millis=3000;
-unsigned long LED_millis=300;               // 10 slots available (3000 / 300)
-unsigned long BUZZER_millis=100;            // Buzz time (120ms Sound + 120ms  Silent)
-
-
-// Standard Actuators STATUS
-float CALIBRATE = 0;                        // float
-float CALIBRATE_Last = 0;                   // float
-unsigned int LEVEL = 0;                     // [0-100]
-unsigned int LEVEL_Last = 0;                // [0-100]
-int POSITION = 0;                           // [-100,+100]
-int POSITION_Last = 0;                      // [-100,+100]
-bool SWITCH = false;                        // [OFF / ON]
-bool SWITCH_Last = false;                   // [OFF / ON]
-unsigned long TIMER = 0;                    // [0-7200]  Minutes                 
-unsigned long TIMER_Last = 0;               // [0-7200]  Minutes                 
-static long TIMER_Current = 0;
-unsigned long COUNTER = 0;
 
 
 // Functions //
@@ -279,42 +256,12 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
 }
 
 
-double ReadVoltage(byte pin){
-  double reading = analogRead(pin); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
+double ReadVoltage(){
+  double reading = analogRead(Batt_ADC_PIN); // Reference voltage is 3v3 so maximum reading is 3v3 = 4095 in range 0 to 4095
   if(reading < 1 || reading > 4095) return -1;
   //return -0.000000000009824 * pow(reading,3) + 0.000000016557283 * pow(reading,2) + 0.000854596860691 * reading + 0.065440348345433;
   return -0.000000000000016 * pow(reading,4) + 0.000000000118171 * pow(reading,3)- 0.000000301211691 * pow(reading,2)+ 0.001109019271794 * reading + 0.034143524634089;
 } // Added an improved polynomial, use either, comment out as required
-
-
-float getBattLevel() {                                      // return Battery level in Percentage [0 - 100%]
-#ifdef IP5306
-    float tempval;
-    float value = -2;
-    for(int i = 0; i < Number_of_measures; i++) {
-        tempval = float(getBatteryLevel());
-        if (tempval > value) value = tempval;
-        delay(10);
-    }
-    return value;
-#else
-    float voltage = 0.0;                                    // Input Voltage [v]
-    for(int i = 0; i < Number_of_measures; i++) {
-        voltage += ReadVoltage(Default_ADC_PIN);
-        delay(1);
-    }
-    voltage = voltage / Number_of_measures;
-    voltage = (voltage * 2) + config.LDO_Corr;              // "* 2" multiplier required when using a 50K + 50K Resistor divider between VCC and ADC. 
-    if (config.DEBUG) Serial.println("Averaged and Corrected Voltage: " + String(voltage));
-    /*
-    if (voltage > Batt_Max ) {
-        if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
-        voltage = Batt_Max;
-    }
-    */
-    return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
-#endif
-}
 
 long getRSSI() {
     // return WiFi RSSI Strength signal [dBm]
@@ -379,40 +326,6 @@ void FormatConfig() {                                   // WARNING!! To be used 
 }
 */
 
-void blink_LED(unsigned int slot, int bl_LED = LED_ESP, bool LED_OFF = config.LED) { // slot range 1 to 10 =>> 3000/300
-    if (bl_LED>=0) {
-        now_millis = millis() % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, !LED_OFF); // Turn LED on
-        now_millis = (millis()-LED_millis/3) % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, LED_OFF); // Turn LED on
-    }
-}
-
-void flash_LED(unsigned int n_flash = 1, int fl_LED = LED_ESP, bool LED_OFF = config.LED) {
-    if (fl_LED>=0) {
-        for (size_t i = 0; i < n_flash; i++) {
-            digitalWrite(fl_LED, !LED_OFF);             // Turn LED on
-            delay(LED_millis/3);
-            digitalWrite(fl_LED, LED_OFF);              // Turn LED off
-            yield();
-            delay(LED_millis);
-        }
-    }
-}
-
-void Buzz(unsigned int n_beeps = 1, unsigned long buzz_time = BUZZER_millis ) {
-    if (BUZZER>=0) {
-        for (size_t i = 0; i < n_beeps; i++) {
-            digitalWrite(BUZZER, HIGH);                 // Turn Buzzer on
-            delay(BUZZER_millis);
-            digitalWrite(BUZZER, LOW);                  // Turn Buzzer off
-            yield();
-            delay(BUZZER_millis);
-        }
-    }
-}
-
-
 void hw_setup() {
   // Initiate Power Management CHIP      
     #ifdef IP5306
@@ -423,34 +336,11 @@ void hw_setup() {
         Serial.println("  -  Batt charging: "  + String(isCharging()) + "  ... and/or fully Charged: "  + String(isChargeFull()));
     #endif
 
-  // Output GPIOs
-    if (LED_ESP>=0) {
-        pinMode(LED_ESP, OUTPUT);
-        digitalWrite(LED_ESP, LOW);                     // initialize LED off
-    }
-    if (BUZZER>=0) {
-        pinMode(BUZZER, OUTPUT);
-        digitalWrite(BUZZER, LOW);                      // initialize BUZZER off
-    }
-
-  // Input GPIOs
-    if (Def_Config>=0) {
-        pinMode(Def_Config, INPUT_PULLUP);
-        if (!digitalRead(Def_Config)) {
-            delay(5000);
-            if (!digitalRead(Def_Config)) {
-                flash_LED(5);
-                storage_reset();
-                RTC_reset();
-                ESPRestart();
-            }
-        }
-    }
 
   // ADC setup
-    analogSetPinAttenuation(Default_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
+    analogSetPinAttenuation(Batt_ADC_PIN,ADC_11db);   // ADC_11db provides an attenuation so that IN/OUT = 1 / 3.6.
                                                          // An input of 3 volts is reduced to 0.833 volts before ADC measurement
-    adcAttachPin(Default_ADC_PIN);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
+    adcAttachPin(Batt_ADC_PIN);                       // S_VP  -- GPIO36, ADC_PRE_AMP, ADC1_CH0, RTC_GPIO0
 
   // Disable BT (most of project won't use it) to save battery.
   //  esp_bt_controller_disable();

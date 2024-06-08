@@ -10,6 +10,7 @@ extern "C" {
 */
 
 // WiFi VARIABLEs
+#define My_WIFI_POWER WIFI_POWER_15dBm
 #define WL_RADIO_OFF 8
 static const String WIFI_state_Name[] = {
 	"WL_IDLE_STATUS",			// 0
@@ -22,6 +23,7 @@ static const String WIFI_state_Name[] = {
     "WL_DISCONNECTED",			// 7
     "WL_RADIO_OFF",             // 8
 };
+
 static const String WIFI_PHY_Mode_Name[] = {
 	"RADIO_OFF",			    // 0
     "802.11b",			        // 1
@@ -79,6 +81,9 @@ void wifi_connect() {
                 if( RTC_read() && (ESPWakeUpReason() == "Deep-Sleep Wake") ) {
                     // The RTC data was good, make a quick connection
                     if (config.DEBUG) Serial.print("Waking from DeepSleep and connecting to WiFi using RTD data and Static IP... ");
+                    //#ifdef ESP32C3
+                    //    WiFi.setTxPower(My_WIFI_POWER);
+                    //#endif
                     WiFi.begin( config.SSID, config.WiFiKey, rtcData.LastWiFiChannel, rtcData.bssid, true );
                     WIFI_state = wifi_waitForConnectResult(2000);
                     if ( WIFI_state != WL_CONNECTED ) {
@@ -91,6 +96,9 @@ void wifi_connect() {
                 else {
                     // The RTC data was not valid, so make a regular connection
                     if (config.DEBUG) Serial.print("NO RTD data or NOT waking from DeepSleep. Using configured WiFi values ... ");
+                    //#ifdef ESP32C3
+                    //    WiFi.setTxPower(My_WIFI_POWER);
+                    //#endif
                     WiFi.begin(config.SSID, config.WiFiKey);
                     WIFI_state = wifi_waitForConnectResult(10000);
                 }
@@ -103,9 +111,12 @@ void wifi_connect() {
                     //}
                     //else Serial.println("mDNS responder started");
                 }
-                else if (config.DEBUG) Serial.println( "WiFI ERROR! ==> " + WIFI_state_string(WIFI_state));
+                else if (config.DEBUG) Serial.println( "WiFI ERROR! ==> " + WIFI_state_string(WIFI_state) );
             }
             if (config.APMode) {
+                //#ifdef ESP32C3
+                //    WiFi.setTxPower(My_WIFI_POWER);
+                //#endif
                 WiFi.softAP(ESP_SSID.c_str());
                 //WiFi.softAP(config.SSID);
                 if (config.DEBUG) { Serial.print("WiFi in AP mode, with IP: "); Serial.println(WiFi.softAPIP());}

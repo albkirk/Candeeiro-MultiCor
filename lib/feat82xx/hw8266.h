@@ -49,7 +49,6 @@ static const String flash_size_map_Name[] = {
     ADC_MODE(ADC_VCC)                       // Get voltage from Internal ADC
 #endif
 
-
 #ifndef ESP8285
 // Initialize the Webserver
 ESP8266WebServer MyWebServer(80);  
@@ -64,18 +63,10 @@ ESP8266WebServer MyWebServer(80);
 WiFiClient unsecuclient;                    // Use this for unsecure connection
 
 // Battery & ESP Voltage
-#define Batt_Max float(4.1)                 // Battery Highest voltage.  [v]
+#define Batt_Max float(4.2)                 // Battery Highest voltage.  [v]
 #define Batt_Min float(2.8)                 // Battery lowest voltage.   [v]
 #define Vcc float(3.3)                      // Theoretical/Typical ESP voltage. [v]
 #define VADC_MAX float(1.0)                 // Maximum ADC Voltage input
-
-// Timers for millis used on Sleeping and LED flash
-unsigned long ONTime_Offset=0;              // [msec]
-unsigned long Extend_time=0;                // [sec]
-unsigned long now_millis=0;
-unsigned long Pace_millis=3000;
-unsigned long LED_millis=300;               // 10 slots available (3000 / 300)
-unsigned long BUZZER_millis=100;            // Buzz time (120ms Sound + 120ms  Silent)
 
 
 // Functions //
@@ -213,22 +204,9 @@ void GoingToSleep(byte Time_minutes = 0, unsigned long currUTime = 0 ) {
     ESP.deepSleep( Time_minutes * 60 * 1000000);            // time in minutes converted to microseconds
 }
 
-
-float getBattLevel() {                                      // return Battery level in Percentage [0 - 100%]
-    float voltage = 0.0;                                    // Input Voltage [v]
-    for(int i = 0; i < Number_of_measures; i++) {
-        if (Using_ADC) {voltage += analogRead(A0) * Vcc;}
-        else {voltage += ESP.getVcc();}         // only later, the (final) measurement will be divided by 1000
-        delay(1);
-    };
-    voltage = voltage / Number_of_measures;
-    voltage = voltage / 1000.0 + config.LDO_Corr;
-    if (config.DEBUG) Serial.println(" Averaged and Corrected Voltage: " + String(voltage));
-    if (voltage > Batt_Max ) {
-        if (config.DEBUG) Serial.println("Voltage will be truncated to Batt_Max: " + String(Batt_Max));
-        voltage = Batt_Max;
-    }
-    return ((voltage - Batt_Min) / (Batt_Max - Batt_Min)) * 100.0;
+float ReadVoltage(){
+    if (Using_ADC) {return float((analogRead(pin) * Vcc)/1000.0);}
+    else {return float(ESP.getVcc());}         // only later, the (final) measurement will be divided by 1000
 }
 
 long getRSSI() {
@@ -275,42 +253,10 @@ void FormatConfig() {                                   // WARNING!! To be used 
     ESP.reset();
 }
 
-void blink_LED(unsigned int slot, int bl_LED = LED_ESP, bool LED_OFF = !config.LED) { // slot range 1 to 10 =>> 3000/300
-    if (bl_LED>=0) {
-        now_millis = millis() % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, !LED_OFF); // Turn LED on
-        now_millis = (millis()-LED_millis/3) % Pace_millis;
-        if (now_millis > LED_millis*(slot-1) && now_millis < LED_millis*slot-LED_millis/2) digitalWrite(bl_LED, LED_OFF); // Turn LED on
-    }
-}
-
-void flash_LED(unsigned int n_flash = 1, int fl_LED = LED_ESP, bool LED_OFF = !config.LED) {
-    if (fl_LED>=0) {
-        for (size_t i = 0; i < n_flash; i++) {
-            digitalWrite(fl_LED, !LED_OFF);             // Turn LED on
-            delay(LED_millis/3);
-            digitalWrite(fl_LED, LED_OFF);              // Turn LED off
-            yield();
-            delay(LED_millis);
-        }
-    }
-}
-
-void Buzz(unsigned int n_beeps = 1, unsigned long buzz_time = BUZZER_millis ) {
-    if (BUZZER>=0) {
-        for (size_t i = 0; i < n_beeps; i++) {
-            digitalWrite(BUZZER, HIGH);                 // Turn Buzzer on
-            delay(BUZZER_millis);
-            digitalWrite(BUZZER, LOW);                  // Turn Buzzer off
-            yield();
-            delay(BUZZER_millis);
-        }
-    }
-}
-
 
 void hw_setup() {
-  // Output GPIOs
+    yield();
+/*  // Output GPIOs
       if (LED_ESP>=0) {
           pinMode(LED_ESP, OUTPUT);
           digitalWrite(LED_ESP, HIGH);                  // initialize LED off
@@ -333,7 +279,7 @@ void hw_setup() {
             }
         }
     }
-
+*/
 
       //RTC_read();                                      // Read the RTC memmory
 }

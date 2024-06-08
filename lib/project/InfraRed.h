@@ -110,8 +110,8 @@ boolean matchCode(decode_results *results) {
           switch (codeValue) {
               case IR_BPlus:  if (GAIN <= 230) GAIN +=25; break;                  // Brightness up
               case IR_BMinus: if (GAIN > 25)   GAIN -=25; break;                  // Brightness down (never goes to 0)
-              case IR_OFF:    EFX = 0; SWITCH = false; break;                     // OFF
-              case IR_ON:     EFX = 0; SWITCH = true; break;                      // ON
+              case IR_OFF:    EFX = 0; Light = false; break;                     // OFF
+              case IR_ON:     EFX = 0; Light = true; break;                      // ON
               case IR_R:      strcpy(Color,RED); break;                           // Red (H=0)
               case IR_G:      strcpy(Color,GREEN); break;                         // Green (H=120)
               case IR_B:      strcpy(Color,BLUE); break;                          // Blue (H=)
@@ -134,8 +134,8 @@ boolean matchCode(decode_results *results) {
               case IR_B16:    strcpy(Color,BLUE_WHITE); break;                    // #E0E0FF
               case IR_AUTO:   EFX = 1; color_set(Color); break;
               case IR_FLASH:  EFX = 2; color_set(Color); break;
-              case IR_JUMP3:  EFX = 5; color_set(Color); break;
-              case IR_JUMP7:  EFX = 6; color_set(Color); break;
+              case IR_JUMP3:  EFX = 7; color_set(Color); break;
+              case IR_JUMP7:  EFX = 8; color_set(Color); break;
               case IR_FADE3:  EFX = 3; color_set(Color); break;
               case IR_FADE7:  EFX = 4; color_set(Color); break;
               case IR_QUICK:  if (EFX_Interval > 500)  EFX_Interval -=250; break; // IR_SLOW
@@ -146,8 +146,8 @@ boolean matchCode(decode_results *results) {
               case IR_DOWNG:  color_change(0,-10,0); break;                       // IR_DOWNG
               case IR_UPB:    color_change(0,0,10); break;                        // IR_UPB
               case IR_DOWNB:  color_change(0,0,-10); break;                       // IR_DOWNB
-              case IR_DIY1:   mess="IR_DIY1"; break;                              // IR_DIY1
-              case IR_DIY2:   mess="IR_DIY2"; break;                              // IR_DIY2
+              case IR_DIY1:   EFX = 5; color_set(Color); break;                   // Scan EFX
+              case IR_DIY2:   EFX = 6; color_set(Color); break;                   // Rainbow EFX
               case IR_DIY3:   mess="IR_DIY3"; break;                              // IR_DIY3
               case IR_DIY4:   mess="IR_DIY4"; break;                              // IR_DIY4
               case IR_DIY5:   mess="IR_DIY5"; break;                              // IR_DIY5
