@@ -4,13 +4,15 @@
 
 void custo_hassio_disc(){
     config_entity("light","None","Light");
-//    config_entity("sensor","none","Timer");
+//    config_entity("switch","None","DEEPSLEEP","",true);
+//    config_entity("switch","None","Switch_Def","",true);
 //    config_trigger("Button_1");
 }
 
 void custo_hassio_del(){
     delete_entity("light","None","Light");
-//    delete_entity("sensor","none","Timer");
+//    delete_entity("switch", "None", "DEEPSLEEP");
+//    delete_entity("switch","","Switch_Def");
 //    delete_trigger("Button_1");
 }
 

@@ -32,7 +32,7 @@
 // -- LED Lights GPIO & Configuration
 #define LED_RGB                                         // Uncoment to be used by color.h library
 //#define LED_NEO                                         // Uncoment to be used by color.h library
-#define PIN_RED              1                            // PWM Output PIN for RED  -1 means NOT used!
+#define PIN_RED              3                            // PWM Output PIN for RED  -1 means NOT used!
 #define PIN_GREEN            0                            // PWM Output PIN for GRREN  -1 means NOT used!
 #define PIN_BLUE             2                            // PWM Output PIN for BLUE  -1 means NOT used!
 #define NEOPixelsPIN        -1                            // GPIO pin where the NeoPixels is connected.
@@ -40,12 +40,13 @@
 
 // -- Power Source & Battery Level --
 bool BattPowered =       false;                           // Is the device battery powered?
+#define Res_Div          false                            // Do you have a Resistor divider (ence needs to multiply by 2)?
 #define Batt_L_Thrs         15                            // Battery level threshold [0%-100%] (before slepping forever).
 #define Using_ADC         true                            // ESP8266 only. Will you use the ADC? (if not, it will measure the internal voltage)
 //#define IP5306                                          // Power Management chip. TTGo T-Call module uses this.
 
 // -- ADC GPIO & (ESP32 Only)
-#define Batt_ADC_PIN        -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35, ESP32-C3->5
+#define Batt_ADC_PIN        -1                            // IO pin for Battery ADC measurement. Default->36,  TFT->36, EPaper->35
 #define NTC_ADC_PIN         -1                            // IO pin for NTC ADC measurement. Default->36,  TFT->36, EPaper->35
 #define LUX_ADC_PIN         -1                            // IO pin for LUX ADC measurement. Default->36,  TFT->36, EPaper->35
 
@@ -59,11 +60,20 @@ bool BattPowered =       false;                           // Is the device batte
 #define SDAPIN              -1                            // 8266=4, ESP32=21, -1 means NO SDA used!
 #define SCKPIN              -1                            // 8266=5, ESP32=22, -1 means NO SCK used!
 
+// -- I2S PIN Definition --
+#define I2S_WS              -1                            // Microphone WS PIN 2
+#define I2S_SCK             -1                            // Microphone SCK PIN 14
+#define I2S_SD              -1                            // Microphone SD PIN 15
+
 // -- DHT Definition --
 #define DHTTYPE              2                            // use 1 for "DHT11", 2 for "DHT22", or 3 for "AM2320" to select the DHT Model
 #define DHTPIN              -1                            // GPIO connected to DHT Data PIN. -1 means NO DHT used!
 
-// -- MODEM Definition --
+// -- COMUNICATION Definition --
+//Bluetooth Definition
+#define BLUETOOTH_NAME      MODELName                     // Name of the Bluetooth device
+#define BLUETOOTH_Disabled                                // Comment it if using BT. It disables Bluetooth radio to save energy. 
+
 // Module selection
 //#define TINY_GSM_MODEM_SIM7020                          // SIMCOM 7020 module. 
 //#define TINY_GSM_MODEM_SIM800                           // SIMCOM 800 module. TTGo T-Call module uses this chip

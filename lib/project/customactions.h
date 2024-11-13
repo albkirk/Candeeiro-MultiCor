@@ -34,6 +34,8 @@ void custom_update(){
     yield();
     //ambient_data();
     //mqtt_dump_data(mqtt_pathtele, "Telemetry");
+    //mqtt_publish(mqtt_pathtele, "DEEPSLEEP", String(config.DEEPSLEEP));
+    //mqtt_publish(mqtt_pathtele, "Switch_Def", String(config.SWITCH_Default));
     telnet_println("Color: " + String(Color) + " : GAIN: " + String(GAIN) + " : EFX: " + String(EFX));
     mqtt_publish(mqtt_pathtele, "Light", String(Light));
     mqtt_publish(mqtt_pathtele, "Color", String(Color));
